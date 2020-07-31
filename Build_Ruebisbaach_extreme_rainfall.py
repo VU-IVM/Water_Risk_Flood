@@ -33,19 +33,23 @@ fn = os.path.join(root_folder,raw_rainfall_data)
 date_format = lambda x: datetime.datetime.strptime(x, "%d-%m-%y %H:%M") #We define the date format to make the datetime are properly recognized
 matrixPrec = pd.read_csv(fn, sep=';', date_parser = date_format, names = ['date', '0.5hr'], index_col = ['date'])
 
-#%% Plotting the rainfall 
+#%% Plotting the rainfall with a time step of 30min
+# This is always recommend to first have a look at the data before using it!
 plt.figure()
 plt.plot(matrixPrec.index, matrixPrec.loc[:,'0.5hr'], '.-b')
 plt.ylabel('Rainfall (mm)')
 plt.xlabel('Date')
 plt.show()
 
-#%% Extracting extreme values using Annual Maxima method
+#%% METHOD 1 - USING EXTREME VALUE ANALYSIS FROM OUR DATA
 
-# Accumulate over a number of intervals. 
+# Extracting extreme values using Annual Maxima method
+# We will accumulate over a number of different intervals. 
 # Note: if we have half hour data and we accumulate 4 intervals, our output data will be 2 hour interval 
 # duration. Below, we give the example for 30-min and 1 hour, you will need to to it for
 # other durations
+
+duration = [0.5, 1]
 
 matrixPrec1hr = matrixPrec.resample('H').sum()
 matrixPrec1hr.rename(columns={'0.5hr': '1hr'}, inplace = True)
@@ -58,6 +62,10 @@ extreme1hr = matrixPrec1hr.resample('AS').max() #Annual maxima of 1-hr rainfall
 output = pd.concat([extreme_raw, extreme1hr], axis = 1)
 
 #%% To remove before the class -------------------------------------------------------
+# Calculating precipitation for other durations
+
+duration = [0.5, 1, 3, 6, 12, 24]
+
 matrixPrec3hr = matrixPrec.resample('3H').sum()
 matrixPrec3hr.rename(columns={'0.5hr': '3hr'}, inplace = True)
 
