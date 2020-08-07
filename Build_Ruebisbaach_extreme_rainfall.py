@@ -21,6 +21,11 @@ import os, sys
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
+import numpy as np
+
+from functions import rainfall_intensity
+
+
 
 
 #%% Define folder paths and filenames
@@ -48,7 +53,6 @@ plt.show()
 # Note: if we have half hour data and we accumulate 4 intervals, our output data will be 2 hour interval 
 # duration. Below, we give the example for 30-min and 1 hour, you will need to to it for
 # other durations
-
 duration = [0.5, 1]
 
 matrixPrec1hr = matrixPrec.resample('H').sum()
@@ -56,11 +60,12 @@ matrixPrec1hr.rename(columns={'0.5hr': '1hr'}, inplace = True)
 
 # We extract the extreme values using the Annual Maxima method
 extreme_raw = matrixPrec.resample('AS').max() #Annual maxima of 30-min rainfall
+#date_max_raw = #####################################################################
+
 extreme1hr = matrixPrec1hr.resample('AS').max() #Annual maxima of 1-hr rainfall
 
 # We combine the results
 output = pd.concat([extreme_raw, extreme1hr], axis = 1)
-
 #%% To remove before the class -------------------------------------------------------
 # Calculating precipitation for other durations
 
@@ -78,7 +83,49 @@ matrixPrec12hr.rename(columns={'0.5hr': '12hr'}, inplace = True)
 matrixPrec24hr = matrixPrec.resample('D').sum()
 matrixPrec24hr.rename(columns={'0.5hr': '24hr'}, inplace = True)
 
+extreme3hr = matrixPrec3hr.resample('AS').max() #Annual maxima of 3-hr rainfall
+extreme6hr = matrixPrec6hr.resample('AS').max() #Annual maxima of 6-hr rainfall
+extreme12hr = matrixPrec12hr.resample('AS').max() #Annual maxima of 12-hr rainfall
+extreme24hr = matrixPrec24hr.resample('AS').max() #Annual maxima of 24-hr rainfall
 
+# We combine the results
+output = pd.concat([extreme_raw, extreme1hr, extreme3hr, extreme6hr, extreme12hr, extreme24hr], axis = 1)
+#%% Convert to rainfall intensity
+intensity_mmhr = pd.DataFrame(data = None, columns = output.columns)
+for i in np.arange(0,len(output.columns), 1):
+    intensity_mmhr.iloc[:,i] = height_to_intensity(output.iloc[:,i], duration[i]) 
+#%% Fitting an Extreme Value Analysis (EVA) distribution
+# We want to extrapolate our data to events we did not observe yet. We will
+# use the function "Gumbelfit_EM" and "Gumbel_evfit". Both functions
+# estimate the parameters of the distribution using a different method. Both
+# functions return three arguments:
+#--> The first is a structure with the values of the parameters
+#--> The second is a matrix with two columns with in column1 x and in column2 ICDF(x)
+#--> The third is an array with the expected values of x at given return periods
+
+return_periods = [10,50,100]
+figure_plotting = 1 # This argument is passed to the functions below. If 0, then no plots are returned. If 1, then plots are returned.
+IDF = pd.DataFrame(index = return_periods, columns = duration)
+IDF.index.name='return_periods'
+
+for dur in intensity_mmhr.columns:
+    print(dur)
+    # Fitting Gumbel with parameters based on Euler-Mascheroni constant and Apéry's constant.
+    parameters, values , x_T = Gumbelfit_EM(intensity_mmhr.loc[:,dur], return_periods, figure_plotting)
+    
+    #Fitting Gumbel with parameters based on Maximum Likelihood Estimates 
+    parameters2, values2 ,x_T2 = Gumbel_evfit(intensity_mmhr.loc[:,dur], return_periods, figure_plotting)
+    
+    #We calculate the empirical return period.
+    emp_intensity = empirical_T(intensity_mmhr.loc[:,dur], figure_plotting);
+
+    #We select the estimates provided by the first functions
+    IDF.loc[:,dur] = x_T.transpose
+    
+    
+
+    
+ 
 #%%
 # We save this table to construct our graph
 # Tip: first make a variable to hold the output in that you want (the
@@ -92,4 +139,15 @@ matrixPrec24hr.rename(columns={'0.5hr': '24hr'}, inplace = True)
 # to find out how save works...
 
 #save(strcat(root_folder,'\Ruebisbaach_rainfall_IDF.txt'), 'output', '-ascii');
+
+
+
+
+
+
+
+
+
+
+
 
