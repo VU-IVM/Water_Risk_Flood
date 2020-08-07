@@ -1,3 +1,3 @@
 def height_to_intensity(data,duration):
 	intensity_mmhr = data/duration
-	return
+	return intensity_mmhr
