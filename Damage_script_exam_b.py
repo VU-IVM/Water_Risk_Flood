@@ -42,6 +42,6 @@ output_filename = 'output_damage';     # Filename of your output map
 output_map_epsg = 3106;                # EPSG code of the coordinate system used
 
 #%%
-loss_df_r = RasterScanner(landuse_map,inun_map,curve_path,maxdam_path, save=True, scenario_name='_try0010', output_path=os.path.join(data_path, output_folder))
+loss_df, damagemap, landuse_in, inundation = RasterScanner(landuse_map,inun_map,curve_path,maxdam_path, save=True, scenario_name='_try0010', output_path=os.path.join(data_path, output_folder))
 
 #damagescanner.plot.inundation_map(inun_map, lu_raster=False, lu_vector=False, save=False)
