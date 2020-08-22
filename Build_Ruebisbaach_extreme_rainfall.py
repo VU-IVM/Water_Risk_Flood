@@ -11,7 +11,6 @@ The homework consists of constructing empirical and analytical IDF curves from t
 Ruebisbaach precipitation data.
 '''
 
-
 #%% 
 import os, sys
 import pandas as pd
@@ -21,12 +20,15 @@ import numpy as np
 from scipy import interpolate
 from scipy.interpolate import Rbf, InterpolatedUnivariateSpline, UnivariateSpline
 
+#MAke sure to change the working directory to where this sript is
+direc = 
+os.chdir(direc)
 from functions_Ruebisbaach import height_to_intensity, Gumbelfit_EM, Gumbel_evfit, empirical_T
 
 #%% 
 # Define folder paths and filenames
 #Folder where your data and scripts are
-root_folder = r'E:\surfdrive\Shared\Water_Risks\2019_2020\SESSION_MATERIALS\SESSION_3_Flood_Hazard_I\Practical_Session\UPLOAD' 
+root_folder = r'E:\surfdrive\Shared\Water_Risks\2019_2020\SESSION_MATERIALS\SESSION_3_Flood_Hazard_I\Practical_Session\UPLOAD'
 raw_rainfall_data = 'Ruebisbaach_precipitation_RAW_AC.csv'
 fn = os.path.join(root_folder,raw_rainfall_data)
 
@@ -73,13 +75,28 @@ output = pd.concat([extreme_raw, extreme1hr], axis = 1)
 # %% To remove before the class -------------------------------------------------------
 # Calculating precipitation for other durations
 
-duration = [0.5, 1, 3, 6, 12, 24]
+duration = [0.5, 1, 2, 3, 4, 5, 6, 8, 12, 24]
+
+matrixPrec2hr = matrixPrec.resample('2H').sum()
+matrixPrec2hr.rename(columns={'0.5hr': '2hr'}, inplace = True)
 
 matrixPrec3hr = matrixPrec.resample('3H').sum()
 matrixPrec3hr.rename(columns={'0.5hr': '3hr'}, inplace = True)
 
+matrixPrec4hr = matrixPrec.resample('4H').sum()
+matrixPrec4hr.rename(columns={'0.5hr': '4hr'}, inplace = True)
+
+matrixPrec5hr = matrixPrec.resample('5H').sum()
+matrixPrec5hr.rename(columns={'0.5hr': '5hr'}, inplace = True)
+
+matrixPrec8hr = matrixPrec.resample('8H').sum()
+matrixPrec8hr.rename(columns={'0.5hr': '8hr'}, inplace = True)
+
 matrixPrec6hr = matrixPrec.resample('6H').sum()
 matrixPrec6hr.rename(columns={'0.5hr': '6hr'}, inplace = True)
+
+matrixPrec8hr = matrixPrec.resample('8H').sum()
+matrixPrec8hr.rename(columns={'0.5hr': '8hr'}, inplace = True)
 
 matrixPrec12hr = matrixPrec.resample('12H').sum()
 matrixPrec12hr.rename(columns={'0.5hr': '12hr'}, inplace = True)
@@ -87,13 +104,18 @@ matrixPrec12hr.rename(columns={'0.5hr': '12hr'}, inplace = True)
 matrixPrec24hr = matrixPrec.resample('D').sum()
 matrixPrec24hr.rename(columns={'0.5hr': '24hr'}, inplace = True)
 
+extreme2hr = matrixPrec2hr.resample('AS').max() #Annual maxima of 2-hr rainfall
 extreme3hr = matrixPrec3hr.resample('AS').max() #Annual maxima of 3-hr rainfall
+extreme4hr = matrixPrec4hr.resample('AS').max() #Annual maxima of 4-hr rainfall
+extreme5hr = matrixPrec5hr.resample('AS').max() #Annual maxima of 5-hr rainfall
 extreme6hr = matrixPrec6hr.resample('AS').max() #Annual maxima of 6-hr rainfall
+extreme8hr = matrixPrec8hr.resample('AS').max() #Annual maxima of 8-hr rainfall
 extreme12hr = matrixPrec12hr.resample('AS').max() #Annual maxima of 12-hr rainfall
 extreme24hr = matrixPrec24hr.resample('AS').max() #Annual maxima of 24-hr rainfall
 
 # We combine the results
-output = pd.concat([extreme_raw, extreme1hr, extreme3hr, extreme6hr, extreme12hr, extreme24hr], axis = 1)
+output = pd.concat([extreme_raw, extreme1hr,extreme2hr, extreme3hr, extreme4hr, extreme5hr,
+                    extreme6hr, extreme8hr, extreme12hr, extreme24hr], axis = 1)
 #%% Convert to rainfall intensity
 intensity_mmhr = pd.DataFrame(data = None, columns = output.columns)
 for i in np.arange(0,len(output.columns), 1):
@@ -187,10 +209,10 @@ X_matrix = np.array(regression.loc[:,['x_0','log(T)','log(D)']])
 # https://en.wikipedia.org/wiki/Regression_analysis
 
 X_matrix_transpose = X_matrix.transpose()
-part_a = np.matmul(X_matrix_transpose,Y)
-part_b0 = np.matmul(X_matrix_transpose,X_matrix)
+part_a = np.dot(X_matrix_transpose,Y) ##ANAIS&ERIC: np.matmul doesnt works any more I changed this to np.dot
+part_b0 = np.dot(X_matrix_transpose,X_matrix)
 part_b = np.linalg.inv(np.matrix(part_b0, dtype='float'))
-betas = np.matmul(part_b,part_a)
+betas = np.dot(part_b,part_a)
 beta_values = [10**betas[0,0], betas[0,1], -betas[0,2]]
 
 # Calculate the empirical IDF based on the coefficients found.
