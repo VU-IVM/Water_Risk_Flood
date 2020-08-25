@@ -20,7 +20,11 @@ import os
 import numpy as np
 import pandas as pd
 import glob
-import rasterio 
+import rasterio
+
+#Make sure to change the working directory to the folder where this sript
+direc = r'E:\surfdrive\Shared\Water_Risks\2019_2020\SESSION_MATERIALS\SESSION_8_Integrating_to_risk\PRACTICALS\Damage\example_exam'
+os.chdir(direc)
 import damagescanner
 from damagescanner.core import RasterScanner
 import damagescanner.plot
