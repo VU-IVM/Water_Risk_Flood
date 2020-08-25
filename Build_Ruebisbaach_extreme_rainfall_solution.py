@@ -18,11 +18,12 @@ import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate
-from scipy.interpolate import Rbf, InterpolatedUnivariateSpline, UnivariateSpline
+import scipy.optimize
+from scipy.interpolate import PchipInterpolator
 
 # Define folder paths and filenames
 #Make sure to change the working directory to where your scripts are
-root_folder = 'C:\Users\acn980\Desktop\WATER RISKS\SESSION_3_Flood_Hazard_I\FINAL\UPLOAD\PYTHON'
+root_folder = r'C:\Users\acn980\Desktop\WATER RISKS\SESSION_3_Flood_Hazard_I\FINAL\UPLOAD\PYTHON'
 os.chdir(root_folder)
 
 #We import the functions we will use in this practical
@@ -30,7 +31,7 @@ from functions_Ruebisbaach import height_to_intensity, Gumbelfit_EM, Gumbel_evfi
 
 #%% Import the data
 # Folder where the precipitation data is located
-fn_prec = 'C:\Users\acn980\Desktop\WATER RISKS\SESSION_3_Flood_Hazard_I\FINAL\UPLOAD'
+fn_prec = r'C:\Users\acn980\Desktop\WATER RISKS\SESSION_3_Flood_Hazard_I\FINAL\UPLOAD'
 raw_rainfall_data = 'Ruebisbaach_precipitation_RAW_AC.csv'
 fn = os.path.join(fn_prec,raw_rainfall_data)
 
@@ -75,16 +76,53 @@ extreme1hr = matrixPrec1hr.resample('AS').max() #Annual maxima of 1-hr rainfall
 
 # We combine the results
 output = pd.concat([extreme_raw, extreme1hr], axis = 1)
-# %% Calculating precipitation for other durations
+# %% To remove before the class -------------------------------------------------------
+# Calculating precipitation for other durations
 
-duration = [0.5, 1, 2, 3, 4, 5, 6, 8, 12, 24]
+# duration = [0.5, 1, 2, 3, 4, 5, 6, 8, 12, 24]
+duration = [0.5, 1, 3, 8, 12, 24]
 
-#...
-#
-#
-#
-#...
 
+matrixPrec2hr = matrixPrec.resample('2H').sum()
+matrixPrec2hr.rename(columns={'0.5hr': '2hr'}, inplace = True)
+
+matrixPrec3hr = matrixPrec.resample('3H').sum()
+matrixPrec3hr.rename(columns={'0.5hr': '3hr'}, inplace = True)
+
+matrixPrec4hr = matrixPrec.resample('4H').sum()
+matrixPrec4hr.rename(columns={'0.5hr': '4hr'}, inplace = True)
+
+matrixPrec5hr = matrixPrec.resample('5H').sum()
+matrixPrec5hr.rename(columns={'0.5hr': '5hr'}, inplace = True)
+
+matrixPrec8hr = matrixPrec.resample('8H').sum()
+matrixPrec8hr.rename(columns={'0.5hr': '8hr'}, inplace = True)
+
+matrixPrec6hr = matrixPrec.resample('6H').sum()
+matrixPrec6hr.rename(columns={'0.5hr': '6hr'}, inplace = True)
+
+matrixPrec8hr = matrixPrec.resample('8H').sum()
+matrixPrec8hr.rename(columns={'0.5hr': '8hr'}, inplace = True)
+
+matrixPrec12hr = matrixPrec.resample('12H').sum()
+matrixPrec12hr.rename(columns={'0.5hr': '12hr'}, inplace = True)
+
+matrixPrec24hr = matrixPrec.resample('D').sum()
+matrixPrec24hr.rename(columns={'0.5hr': '24hr'}, inplace = True)
+
+extreme2hr = matrixPrec2hr.resample('AS').max() #Annual maxima of 2-hr rainfall
+extreme3hr = matrixPrec3hr.resample('AS').max() #Annual maxima of 3-hr rainfall
+extreme4hr = matrixPrec4hr.resample('AS').max() #Annual maxima of 4-hr rainfall
+extreme5hr = matrixPrec5hr.resample('AS').max() #Annual maxima of 5-hr rainfall
+extreme6hr = matrixPrec6hr.resample('AS').max() #Annual maxima of 6-hr rainfall
+extreme8hr = matrixPrec8hr.resample('AS').max() #Annual maxima of 8-hr rainfall
+extreme12hr = matrixPrec12hr.resample('AS').max() #Annual maxima of 12-hr rainfall
+extreme24hr = matrixPrec24hr.resample('AS').max() #Annual maxima of 24-hr rainfall
+
+# We combine the results
+# output = pd.concat([extreme_raw, extreme1hr,extreme2hr, extreme3hr, extreme4hr, extreme5hr,
+#                     extreme6hr, extreme8hr, extreme12hr, extreme24hr], axis = 1)
+output = pd.concat([extreme_raw, extreme1hr,extreme3hr, extreme8hr, extreme12hr, extreme24hr], axis = 1)
 #%% Convert to rainfall intensity
 intensity_mmhr = pd.DataFrame(data = None, columns = output.columns)
 for i in np.arange(0,len(output.columns), 1):
@@ -98,7 +136,7 @@ for i in np.arange(0,len(output.columns), 1):
 #--> The second is a matrix with two columns with in column1 x and in column2 ICDF(x)
 #--> The third is an array with the expected values of x at given return periods
 
-return_periods = [10,50,100]
+return_periods = [2, 5, 10, 25, 50, 75, 100, 500, 1000]
 figure_plotting = 0 # This argument is passed to the functions below. If 0, then no plots are returned. If 1, then plots are returned.
 IDF = pd.DataFrame(index = return_periods, columns = output.columns)
 IDF.index.name='return_periods'
@@ -115,7 +153,7 @@ for dur in intensity_mmhr.columns:
     emp_intensity = empirical_T(intensity_mmhr.loc[:,dur], figure_plotting)
 
     #We select the estimates provided by the first functions
-    IDF.loc[:,dur] = x_T.transpose()
+    IDF.loc[:,dur] = x_T2.transpose()
 
 # We plot the differences between empirical and fitted Gumbel
 plt.figure()
@@ -132,12 +170,8 @@ plt.ylabel('Rainfall Intensity (mm/hr)')
 # Smooth Original IDF Curves using splines: 
 IDF_interp = pd.DataFrame(index = np.linspace(min(duration), max(duration), 100), columns = return_periods)
 for r in IDF.index:
-    tck = UnivariateSpline(duration, IDF.loc[r,:].values, k = 2, s=2)  #MAX : CAN YOU IMPROVE THIS? #############
-    ynew = tck(IDF_interp.index.values)
-    # tck = interpolate.splrep(duration, IDF.loc[r,:].values, s=0)
-    # ynew = interpolate.splev(IDF_interp.index.values, tck, der=0)
-    #tck = Rbf(duration, IDF.loc[r,:].values)
-    #ynew = tck(IDF_interp.index.values)
+    z = PchipInterpolator(duration, IDF.loc[r,:].values) #Interpolation using Piecewise Cubic Hermite Interpolating Polynomial 
+    ynew = z(IDF_interp.index.values)
     IDF_interp.loc[:,r] = ynew
 
 #Plot the results
@@ -149,7 +183,8 @@ for dur in IDF.columns:
 
 for ret_period in IDF_interp.columns:
     print(ret_period)
-    plt.plot(IDF_interp.index, IDF_interp.loc[:, ret_period], '-')
+    plt.plot(IDF_interp.index, IDF_interp.loc[:, ret_period], '-', label = str(ret_period))
+plt.legend()
 plt.xlim(0,30)
 plt.xlabel('Duration (hrs)')
 plt.ylabel('Rainfall Intensity (mm/hr)')
@@ -199,7 +234,8 @@ for dur in IDF.columns:
 
 for ret_period in IDF_emp.columns:
     print(ret_period)
-    plt.plot(IDF_emp.index, IDF_emp.loc[:, ret_period], '-')
+    plt.plot(IDF_emp.index, IDF_emp.loc[:, ret_period], '-', label = str(ret_period))
+plt.legend()
 plt.xlim(0,30)
 plt.xlabel('Duration (hrs)')
 plt.ylabel('Rainfall Intensity (mm/hr)')
