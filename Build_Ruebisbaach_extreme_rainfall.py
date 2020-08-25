@@ -18,11 +18,12 @@ import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate
-from scipy.interpolate import Rbf, InterpolatedUnivariateSpline, UnivariateSpline
+import scipy.optimize
+from scipy.interpolate import PchipInterpolator
 
 # Define folder paths and filenames
 #Make sure to change the working directory to where your scripts are
-root_folder = 'C:\Users\acn980\Desktop\WATER RISKS\SESSION_3_Flood_Hazard_I\FINAL\UPLOAD\PYTHON'
+root_folder = ''
 os.chdir(root_folder)
 
 #We import the functions we will use in this practical
@@ -30,7 +31,7 @@ from functions_Ruebisbaach import height_to_intensity, Gumbelfit_EM, Gumbel_evfi
 
 #%% Import the data
 # Folder where the precipitation data is located
-fn_prec = 'C:\Users\acn980\Desktop\WATER RISKS\SESSION_3_Flood_Hazard_I\FINAL\UPLOAD'
+fn_prec = ''
 raw_rainfall_data = 'Ruebisbaach_precipitation_RAW_AC.csv'
 fn = os.path.join(fn_prec,raw_rainfall_data)
 
@@ -75,15 +76,16 @@ extreme1hr = matrixPrec1hr.resample('AS').max() #Annual maxima of 1-hr rainfall
 
 # We combine the results
 output = pd.concat([extreme_raw, extreme1hr], axis = 1)
-# %% Calculating precipitation for other durations
+# %% To remove before the class -------------------------------------------------------
+# Calculating precipitation for other durations
 
-duration = [0.5, 1, 2, 3, 4, 5, 6, 8, 12, 24]
+duration = [0.5, 1, 3, 8, 12, 24]
 
-#...
+#.....
 #
 #
 #
-#...
+#.....
 
 #%% Convert to rainfall intensity
 intensity_mmhr = pd.DataFrame(data = None, columns = output.columns)
@@ -98,7 +100,7 @@ for i in np.arange(0,len(output.columns), 1):
 #--> The second is a matrix with two columns with in column1 x and in column2 ICDF(x)
 #--> The third is an array with the expected values of x at given return periods
 
-return_periods = [10,50,100]
+return_periods = [5, 50, 100]
 figure_plotting = 0 # This argument is passed to the functions below. If 0, then no plots are returned. If 1, then plots are returned.
 IDF = pd.DataFrame(index = return_periods, columns = output.columns)
 IDF.index.name='return_periods'
@@ -132,12 +134,8 @@ plt.ylabel('Rainfall Intensity (mm/hr)')
 # Smooth Original IDF Curves using splines: 
 IDF_interp = pd.DataFrame(index = np.linspace(min(duration), max(duration), 100), columns = return_periods)
 for r in IDF.index:
-    tck = UnivariateSpline(duration, IDF.loc[r,:].values, k = 2, s=2)  #MAX : CAN YOU IMPROVE THIS? #############
-    ynew = tck(IDF_interp.index.values)
-    # tck = interpolate.splrep(duration, IDF.loc[r,:].values, s=0)
-    # ynew = interpolate.splev(IDF_interp.index.values, tck, der=0)
-    #tck = Rbf(duration, IDF.loc[r,:].values)
-    #ynew = tck(IDF_interp.index.values)
+    z = PchipInterpolator(duration, IDF.loc[r,:].values) #Interpolation using Piecewise Cubic Hermite Interpolating Polynomial 
+    ynew = z(IDF_interp.index.values)
     IDF_interp.loc[:,r] = ynew
 
 #Plot the results
@@ -149,7 +147,8 @@ for dur in IDF.columns:
 
 for ret_period in IDF_interp.columns:
     print(ret_period)
-    plt.plot(IDF_interp.index, IDF_interp.loc[:, ret_period], '-')
+    plt.plot(IDF_interp.index, IDF_interp.loc[:, ret_period], '-', label = str(ret_period))
+plt.legend()
 plt.xlim(0,30)
 plt.xlabel('Duration (hrs)')
 plt.ylabel('Rainfall Intensity (mm/hr)')
@@ -199,7 +198,8 @@ for dur in IDF.columns:
 
 for ret_period in IDF_emp.columns:
     print(ret_period)
-    plt.plot(IDF_emp.index, IDF_emp.loc[:, ret_period], '-')
+    plt.plot(IDF_emp.index, IDF_emp.loc[:, ret_period], '-', label = str(ret_period))
+plt.legend()
 plt.xlim(0,30)
 plt.xlabel('Duration (hrs)')
 plt.ylabel('Rainfall Intensity (mm/hr)')
