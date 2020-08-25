@@ -7,3 +7,6 @@ dependencies:
   - pandas=0.24.2
   - jupyter=1.0.0
   - xlrd=1.1.0
+  - spyder-kernels
+  - scipy=1.4.1
+  
