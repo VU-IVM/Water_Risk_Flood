@@ -48,15 +48,20 @@ with rasterio.open(landuse_map) as src: #Reading the landuse map and storing it 
     landuse = src.read()[0, :, :]
     transform = src.transform
 
-with rasterio.open(inun_map) as src: #Reading the inundation map and storing it in an array
-    inundation = src.read()[0, :, :]
-    transform = src.transform
-    
-#%% Setting no data value and calculating cell size
-#Calculate cell size of one cell: be careful with units!
+
 cellsize = src.res[0] * src.res[1] #in the rasterio package '.res' will return the resolution of the cell along the x or y axis (0 or 1)
 
+# Setting no data value and calculating cell size
+#Calculate cell size of one cell: be careful with units!
+
 no_data = 9999  #Setting the no data value
+
+
+def damage_func(curves, maxdam, landuse, inun_map, cell_size, no_data):
+    
+    with rasterio.open(inun_map) as src: #Reading the inundation map and storing it in an array
+        inundation = src.read()[0, :, :]
+        transform = src.transform
 
 #%% Calculating the damage
 
