@@ -33,7 +33,7 @@ output_map_epsg = 3106;                # EPSG code of the coordinate system used
 landuse_map = os.path.join(data_path,'landuse_exam.tif') #Filename of your landuse map
 curve_path = os.path.join(data_path,'TABLE_CURVES_exam.csv') #Filename of your depth-damage functions
 maxdam_path = os.path.join(data_path,'TABLE_MAXDAM_exam.csv') #Filename of your maximum damage values
-inun_map = os.path.join(data_path, 'inun_exam_rp_00010.tif') #Filename of your hazard map
+inun_map = os.path.join(data_path, 'inun_exam_rp_00100.tif') #Filename of your hazard map
 
 #Read csv data
 curves = pd.read_csv(curve_path).dropna(axis = 1).values #Reading csv file of depth-damage curves and storing it in an array 

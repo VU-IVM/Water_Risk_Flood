@@ -188,11 +188,11 @@ def RasterScanner(landuse_map,
         alldamage[landuse == n] = damage
 
     # create the damagemap
-    damagemap = np.zeros((area.shape[0], area.shape[1]), dtype='int32')
+    damagemap = np.zeros((area.shape[0], area.shape[1]), dtype='float32') ####################################
     damagemap[area] = alldamage
 
     # create pandas dataframe with output
-    loss_df = pd.DataFrame(damagebin.astype(np.int64),
+    loss_df = pd.DataFrame(damagebin.astype(np.float32),
                            columns=['landuse',
                                     'losses']).groupby('landuse').sum()
 
@@ -219,6 +219,7 @@ def RasterScanner(landuse_map,
             'transform': transform,
             'compress': "LZW"
         }
+        print('damage type ', damagemap.dtype)
         with rasterio.open(dmap_fn, 'w', **rst_opts) as dst:
             dst.write(damagemap, 1)
 
