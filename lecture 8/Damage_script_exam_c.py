@@ -19,8 +19,10 @@ import glob #package to list folders and files.
 import numpy as np #mathematical package for fast operations on arrays.
 import pandas as pd #mathematical package for operations on arrays with labelled columns and indexes. Very good for time serie analysis 
 import rasterio #package for raster operation
-import damagescanner #Package to calculate the damage
-from damagescanner.core import RasterScanner #The function we use to calculate the damage from the package damagescanner: https://github.com/ElcoK/DamageScanner/blob/master/src/damagescanner/core.py
+
+import sys #package to list folders which have functions we will use
+sys.path.insert(0, 'E:\github\Water_Risk_Flood\damagescanner') #This should be the path to the damagescanner folder you downloaded from the Water_Risk_Flood Github repository
+from core import RasterScanner #core.py is a file at the path above from which we import the function RasterScanner
 #%% Define folder paths and filenames
 data_path = r'E:\surfdrive\Shared\Water_Risks\2019_2020\SESSION_MATERIALS\SESSION_8_Integrating_to_risk\PRACTICALS\Damage\example_exam'  # The root folder from which you are working.
 
@@ -41,9 +43,6 @@ maxdam_path = os.path.join(data_path,'TABLE_MAXDAM_exam.csv') #Filename of your 
 #Read csv data
 curves = pd.read_csv(curve_path).dropna(axis = 1).values #Reading csv file of depth-damage curves and storing it in an array 
 curves[:,1:] = curves[:,1:]/100 #Converting the depth-damage curve to a ratio (i.e. value between 0 and 1)
-
-maxdam = pd.read_csv(maxdam_path).values #Reading csv file of maximum damage and storing it in an array 
-
 #%% Loop through inundation maps
 #We want to save the damages per land-use class for each return period in an overall summary table
 damage_per_class_all_rps = pd.DataFrame(data=None)
@@ -54,7 +53,7 @@ for inun_map in hazard_filenames:
     name_rp = str1.split('.tif')[0]    
     
     #Calculate the damage and output the raster and damage summary table using the function 
-    loss_df_rp, _, _, _ = RasterScanner(landuse_map,inun_map,curves,maxdam, save=True, scenario_name=name_rp, output_path=os.path.join(data_path, output_folder))
+    loss_df_rp, _, _, _ = RasterScanner(landuse_map,inun_map,curves,maxdam_path, save=True, scenario_name=name_rp, output_path=os.path.join(data_path, output_folder), dtype = np.float32, nan_value = 9999)
     loss_df_rp.rename(columns = {'losses':name_rp}, inplace = True) #We change the name of the column with the RP
     
     damage_per_class_all_rps = damage_per_class_all_rps.join(loss_df_rp, how = 'outer') #We append the column to the overall summary table

@@ -88,7 +88,7 @@ for i in range(0, numberofclasses):
 #%%Store the damage raster results and export it
     
 # create the raster damagemap
-damagemap = np.zeros((area.shape[0], area.shape[1]), dtype='int32') #Create a 2D array of zeros to store the damage values with the same shape as your input shape
+damagemap = np.zeros((area.shape[0], area.shape[1]), dtype=np.float32) #Create a 2D array of zeros to store the damage values with the same shape as your input shape
 damagemap[area] = alldamage #Save damage values on the 2D array using the TRUE-FALSE mask of inundated cells
 
 # Save the raster damagemap as a geotiff
@@ -99,7 +99,7 @@ rst_opts = {
     'height': damagemap.shape[0],  #nb of cells of raster - vertical
     'width': damagemap.shape[1],  #nb of cells of raster - horizontal
     'count': 1, #Defines the number of bands to write
-    'dtype': damagemap.dtype, #data type - here integers
+    'dtype': np.float32, #data type - here float
     'crs': output_map_epsg, #coordinate system 
     'transform': transform, #information normally stored in the .prj file in GIS projects
     'compress': "LZW" #to compress the data and make it less voluminous
