@@ -9,7 +9,7 @@
 import os #package to manipulate and connect paths and files.
 import numpy as np #mathematical package for fast operations on arrays.
 import matplotlib.pyplot as plt #package used in the vizualisation and plotting of data
-import pandas as pd #mathematical package for time serie analysis based on data frames
+import pandas as pd #mathematical package for operations on arrays with labelled columns and indexes. Very good for time serie analysis 
 #%% Define root folder, and location of input damages and return periods
 root_folder = r'E:\surfdrive\Shared\Water_Risks\2019_2020\SESSION_MATERIALS\SESSION_8_Integrating_to_risk\PRACTICALS\EAD' #r: refers to the root folder you are using, this is a formatting style for python
 input_file = 'ead_example_damage_input.csv'
