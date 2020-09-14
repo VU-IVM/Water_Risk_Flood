@@ -13,11 +13,11 @@ rp = np.array([np.inf,500,100,50,10]) #Array of return periods
 ep = 1/rp; #Conversion: from return period to exceedance probability
 
 #Make a figure to make it is all correct
-plt.figure()
+plt.figure() #create a new figure
 plt.plot(ep, damage, '-or') #plotting the exceedance probability vs. the damage
 plt.xlabel('Exc. Prob') #adding a x-label to the graph
 plt.ylabel('Damage (USD)') #adding a y-label to the graph
-plt.show()
+plt.show() #finish the figure
 
 #Calculate EAD...
 ead = np.trapz(y = damage, x = ep) #Calculate EAD using trapezoidal approximation
