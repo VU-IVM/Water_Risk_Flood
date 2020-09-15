@@ -20,9 +20,8 @@ import numpy as np #mathematical package for fast operations on arrays.
 import pandas as pd #mathematical package for operations on arrays with labelled columns and indexes. Very good for time serie analysis 
 import rasterio #package for raster operation
 
-import sys #package to list folders which have functions we will use
-sys.path.insert(0, 'E:\github\Water_Risk_Flood\damagescanner') #This should be the path to the damagescanner folder you downloaded from the Water_Risk_Flood Github repository
-from core import RasterScanner #core.py is a file at the path above from which we import the function RasterScanner
+import damagescanner #Package to do risk damage calculations. See also: https://github.com/ElcoK/DamageScanner
+from damagescanner.core import RasterScanner #From the package, we import the function RasterScanner we want to work with
 #%% Define folder paths and filenames
 data_path = r'E:\surfdrive\Shared\Water_Risks\2019_2020\SESSION_MATERIALS\SESSION_8_Integrating_to_risk\PRACTICALS\Damage\example_exam'  # The root folder from which you are working.
 
